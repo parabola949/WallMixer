@@ -42,11 +42,19 @@
                 _cts = new CancellationTokenSource();
                 
                 var sources = await _db.GetSourcesAsync();
-                var randSource = sources[_rand.Next(sources.Count)];
-                if (randSource.Source == Source.Wallhaven) randSource.WallhavenOptions = await _db.GetWallhavenOptions(randSource);
-                await ImageManager.SetRandomWallpaper(randSource, _db.ImgurClientId);
-                ToolTipInfo = string.Format("Source: {0}", randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query);
-                NotifyOfPropertyChange(() => ToolTipInfo);
+                if (sources.Count > 0)
+                {
+                    var randSource = sources[_rand.Next(sources.Count)];
+                    if (randSource.Source == Source.Wallhaven) randSource.WallhavenOptions = await _db.GetWallhavenOptions(randSource);
+                    await ImageManager.SetRandomWallpaper(randSource, _db.ImgurClientId);
+                    ToolTipInfo = string.Format("Source: {0}", randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query);
+                    NotifyOfPropertyChange(() => ToolTipInfo);
+                }
+                else
+                {
+                    ToolTipInfo = "Please add sources!";
+                    NotifyOfPropertyChange(() => ToolTipInfo);
+                }
                 await Task.Delay(TimeSpan.FromMinutes(_db.Interval), _cts.Token).ContinueWith(tsk => { });
             }
         }
