@@ -1,0 +1,21 @@
+﻿<controls:MetroWindow x:Class="WallMixer.MainView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
+        xmlns:cal="http://www.caliburnproject.org"
+        Title="WallMixer" Visibility="Hidden" Width="100" Height="100">
+    
+    <Grid>
+        <tb:TaskbarIcon x:Name="tbIcon" IconSource="wmxr.ico" ToolTipText="{Binding ToolTipInfo}">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Configure" cal:Message.Attach="Configure"/>
+                    <MenuItem Header="Save Wallpaper" cal:Message.Attach="SaveWallpaper"/>
+                    <MenuItem Header="Next Wallpaper" cal:Message.Attach="NextWallpaper"/>
+                    <MenuItem Header="Exit" cal:Message.Attach="Exit"/>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+    </Grid>
+</controls:MetroWindow>

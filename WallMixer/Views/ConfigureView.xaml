@@ -1,0 +1,63 @@
+﻿<controls:MetroWindow x:Class="WallMixer.Views.ConfigureView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:cal="http://www.caliburnproject.org"
+        xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+        xmlns:events="clr-namespace:WallMixer.Classes"
+        Title="Configure WallMixer" Height="363.453" Width="676.641" ShowIconOnTitleBar="True" Icon="pack://application:,,,/wmxr.ico">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Resources/Icons.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <controls:MetroWindow.RightWindowCommands>
+        <controls:WindowCommands>
+            <Button ToolTip="Add source to retrieve wallpapers" Click="ButtonBase_OnClick">
+                <StackPanel Orientation="Horizontal">
+                    <Rectangle Width="20" Height="20" Fill="{Binding RelativeSource={RelativeSource AncestorType=Button}, Path=Foreground}">
+                        <Rectangle.OpacityMask>
+                            <VisualBrush Stretch="Fill" Visual="{StaticResource appbar_tiles_add}" />
+                        </Rectangle.OpacityMask>
+                    </Rectangle>
+                </StackPanel>
+                <Button.ContextMenu>
+                    <ContextMenu x:Name="LeftClickMenu">
+                        <MenuItem Header="Subreddit" cal:Message.Attach="AddSubreddit"/>
+                        <MenuItem Header="Wallhaven" cal:Message.Attach="AddWallhaven"/>
+                    </ContextMenu>
+                </Button.ContextMenu>
+            </Button>
+        </controls:WindowCommands>
+    </controls:MetroWindow.RightWindowCommands>
+    <Grid>
+        <ListBox x:Name="Sources" HorizontalAlignment="Left" Height="241" VerticalAlignment="Top" Width="649" Margin="11,10,0,0">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Query}"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Tag" Value="{Binding Path=DataContext, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ListBox}}"/>
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="Delete Source" cal:Message.Attach="DeleteSource($dataContext)" cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ContextMenu}}"/>
+                                <MenuItem Header="Edit Source" cal:Message.Attach="EditSource($dataContext)" cal:Action.TargetWithoutContext="{Binding Path=PlacementTarget.Tag, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=ContextMenu}}"/>
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+        </ListBox>
+        <Label Content="Update Frequency:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,256,0,0"/>
+        <controls:NumericUpDown Minimum="1" Maximum="900" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="124,256,0,0" Width="118" Value="{Binding Interval}" cal:Message.Attach="[Event ValueChanged] = [Action SetInterval]" />
+        <Label Content="Save Location:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="336,257,0,0" Width="109"/>
+        <TextBox HorizontalAlignment="Left" Height="23" IsReadOnly="True" Text="{Binding SaveLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="215" Margin="445,255,0,0" Style="{StaticResource OpenFileMetroTextBox}" controls:TextBoxHelper.ButtonCommand="{Binding SetSaveLocationCommand}"/>
+        <Label Content="Imgur ClientID:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,287,0,0"/>
+        <TextBox HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="{Binding ImgurClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120" Margin="122,288,0,0" cal:Message.Attach="[Event TextChanged] = [Action SetImgurClientId]"/>
+    </Grid>
+</controls:MetroWindow>
