@@ -125,7 +125,7 @@
     </Compile>
     <Compile Include="DTO\WallhavenOptions.cs" />
     <Compile Include="DTO\WallpaperSource.cs" />
-    <Compile Include="Interfaces\DatabaseManager.cs" />
+    <Compile Include="Interfaces\WallpaperRepository.cs" />
     <Compile Include="Interfaces\ImageManager.cs" />
     <Compile Include="Interfaces\MetroDialogHandler.cs" />
     <Compile Include="MainBootstrapper.cs" />

@@ -24,7 +24,7 @@
             container = new CompositionContainer(new AggregateCatalog(AssemblySource.Instance.Select(x => new AssemblyCatalog(x)).OfType<ComposablePartCatalog>()));
             CompositionBatch batch = new CompositionBatch();
             batch.AddExportedValue<IWindowManager>(new WindowManager());
-            batch.AddExportedValue<IDatabase>(new DatabaseManager());
+            batch.AddExportedValue<IWallpaperRepository>(new WallpaperRepository());
             batch.AddExportedValue<IMetroDialog>(new MetroDialogHandler(() => Application.Current.Windows.OfType<MetroWindow>().FirstOrDefault(w => w.IsActive) ?? Application.Current.MainWindow as MetroWindow));
             //batch.AddExportedValue<IEventAggregator>(new EventAggregator());
             batch.AddExportedValue(container);

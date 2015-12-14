@@ -20,7 +20,7 @@
 
     public class ConfigureViewModel : Screen
     {
-        private IDatabase _db;
+        private IWallpaperRepository _db;
         private IMetroDialog _dialog;
         public IObservableCollection<WallpaperSource> Sources { get; private set; }
         public int Interval { get; set; }
@@ -28,7 +28,7 @@
         public string ImgurClientId { get; set; }
         public ICommand SetSaveLocationCommand { get { return new RelayCommand(SetSaveLocation); } }
 
-        public ConfigureViewModel(IDatabase database, IMetroDialog metroDialog)
+        public ConfigureViewModel(IWallpaperRepository database, IMetroDialog metroDialog)
         {
             _db = database;
             _dialog = metroDialog;
@@ -38,9 +38,9 @@
         protected override async void OnInitialize()
         {
             Sources.AddRange(await _db.GetSourcesAsync());
-            Interval = _db.Interval;
-            SaveLocation = _db.SaveLocation;
-            ImgurClientId = _db.ImgurClientId;
+            Interval = await _db.Interval();
+            SaveLocation = await _db.SaveLocation();
+            ImgurClientId = await _db.ImgurClientId();
         }
 
         public async void AddSubreddit()
@@ -102,21 +102,21 @@
             Sources.Remove(source);
         }
 
-        public void SetInterval()
+        public async void SetInterval()
         {
-            _db.Interval = Interval;
+            await _db.Interval(Interval);
         }
 
-        public void SetImgurClientId()
+        public async void SetImgurClientId()
         {
-            _db.ImgurClientId = ImgurClientId;
+            await _db.ImgurClientId(ImgurClientId);
         }
 
-        public void SetSaveLocation()
+        public async void SetSaveLocation()
         {
             var dialog = new FolderBrowserDialog();
             if (dialog.ShowDialog() != DialogResult.OK) return;
-            _db.SaveLocation = dialog.SelectedPath;
+            await _db.SaveLocation(dialog.SelectedPath);
             SaveLocation = dialog.SelectedPath;
             NotifyOfPropertyChange(() => SaveLocation);
         }

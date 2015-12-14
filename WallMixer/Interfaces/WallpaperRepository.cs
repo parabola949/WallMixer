@@ -9,44 +9,59 @@
 	using DTO;
 	using Dapper;
 
-	public interface IDatabase
+	public interface IWallpaperRepository
 	{
 		Task<List<WallpaperSource>> GetSourcesAsync();
-		void AddSource(WallpaperSource source);
-		void EditSource(WallpaperSource source);
-		void RemoveSource(WallpaperSource source);
+		Task AddSource(WallpaperSource source);
+		Task EditSource(WallpaperSource source);
+		Task RemoveSource(WallpaperSource source);
 		Task<WallhavenOptions> GetWallhavenOptions(WallpaperSource source);
-		int Interval { get; set; }
-		string SaveLocation { get; set; }
-		string ImgurClientId { get; set; }
+	    Task<int> Interval();
+	    Task Interval(int newInterval);
+	    Task<string> SaveLocation();
+	    Task SaveLocation(string newLocation);
+	    Task<string> ImgurClientId();
+	    Task ImgurClientId(string newId);
 	}
 
-	public class DatabaseManager : IDatabase
+	public class WallpaperRepository : IWallpaperRepository
 	{
 		private SQLiteConnection db = new SQLiteConnection("Data Source=WallMixer.sqlite;Version=3;");
 
-		public DatabaseManager()
+		public WallpaperRepository()
 		{
-			ConfigureDatabase();
+			ConfigureRepository();
 		}
 
-		public int Interval
-		{
-			get { return Convert.ToInt32(db.QueryAsync<long>("SELECT Interval FROM WallMixerSettings").Result.FirstOrDefault()); }
-			set { db.ExecuteAsync("UPDATE WallMixerSettings SET Interval=" + value); }
-		}
+	    public async Task<int> Interval()
+	    {
+	        return Convert.ToInt32((await db.QueryAsync<long>("SELECT TOP 1 Interval FROM WallMixerSettings")).FirstOrDefault());
+	    }
 
-		public string SaveLocation
-		{
-			get { return db.QueryAsync<string>("SELECT SaveLocation FROM WallMixerSettings").Result.FirstOrDefault(); }
-			set { db.ExecuteAsync("UPDATE WallMixerSettings SET SaveLocation='" + value + "'"); }
-		}
+	    public async Task Interval(int newInterval)
+	    {
+	        await db.ExecuteAsync("UPDATE WallMixerSettings SET Interval=@interval", new {interval = newInterval});
+	    }
 
-		public string ImgurClientId
-		{
-			get { return db.QueryAsync<string>("SELECT ImgurClientID FROM WallMixerSettings").Result.FirstOrDefault(); }
-			set { db.ExecuteAsync("UPDATE WallMixerSettings SET ImgurClientID='" + value + "'"); }
-		}
+	    public async Task<string> SaveLocation()
+	    {
+	        return (await db.QueryAsync<string>("SELECT TOP 1 SaveLocation FROM WallMixerSettings")).FirstOrDefault();
+	    }
+
+	    public async Task SaveLocation(string newLocation)
+	    {
+	        await db.ExecuteAsync("UPDATE WallMixerSettings SET SaveLocation=@location", new {location = newLocation});
+	    }
+
+	    public async Task<string> ImgurClientId()
+	    {
+	        return (await db.QueryAsync<string>("SELECT TOP 1 ImgurClientId FROM WallMixerSettings")).FirstOrDefault();
+	    }
+
+	    public async Task ImgurClientId(string newId)
+	    {
+	        await db.ExecuteAsync("UPDATE WallMixerSettings SET ImgurClientId=@clientId", new {clientId = newId});
+	    }
 
 		public async Task<List<WallpaperSource>> GetSourcesAsync()
 		{
@@ -54,7 +69,7 @@
 					.Select(x => new WallpaperSource {Query = x.Query, Source = (Source) x.Tpe}).ToList();
 		}
 
-		public async void AddSource(WallpaperSource source)
+		public async Task AddSource(WallpaperSource source)
 		{
 			switch (source.Source)
 			{
@@ -67,8 +82,7 @@
 			}
 		}
 
-
-		public async void EditSource(WallpaperSource source)
+		public async Task EditSource(WallpaperSource source)
 		{
 			switch (source.Source)
 			{
@@ -80,7 +94,7 @@
 			}
 		}
 
-		public async void RemoveSource(WallpaperSource source)
+		public async Task RemoveSource(WallpaperSource source)
 		{
 			switch (source.Source)
 			{
@@ -95,10 +109,10 @@
 
 		public async Task<WallhavenOptions> GetWallhavenOptions(WallpaperSource source)
 		{
-			return (await db.QueryAsync<WallhavenOptions>("SELECT * FROM Wallhaven WHERE Query=@Query", source)).FirstOrDefault();
+			return (await db.QueryAsync<WallhavenOptions>("SELECT TOP 1 * FROM Wallhaven WHERE Query=@Query", source)).FirstOrDefault();
 		}
 
-		private async void ConfigureDatabase()
+		private async Task ConfigureRepository()
 		{
 			if (File.Exists("first.bin")) return;
 			await db.ExecuteAsync(@"CREATE TABLE ""WallMixerSettings"" (`SaveLocation` TEXT, `Interval` INTEGER, `ImgurClientID` TEXT)");
