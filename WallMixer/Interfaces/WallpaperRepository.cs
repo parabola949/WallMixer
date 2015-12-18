@@ -35,7 +35,7 @@
 
 	    public async Task<int> Interval()
 	    {
-	        return Convert.ToInt32((await db.QueryAsync<long>("SELECT TOP 1 Interval FROM WallMixerSettings")).FirstOrDefault());
+	        return Convert.ToInt32((await db.QueryAsync<long>("SELECT Interval FROM WallMixerSettings")).FirstOrDefault());
 	    }
 
 	    public async Task Interval(int newInterval)
@@ -45,7 +45,7 @@
 
 	    public async Task<string> SaveLocation()
 	    {
-	        return (await db.QueryAsync<string>("SELECT TOP 1 SaveLocation FROM WallMixerSettings")).FirstOrDefault();
+	        return (await db.QueryAsync<string>("SELECT SaveLocation FROM WallMixerSettings")).FirstOrDefault();
 	    }
 
 	    public async Task SaveLocation(string newLocation)
@@ -55,7 +55,7 @@
 
 	    public async Task<string> ImgurClientId()
 	    {
-	        return (await db.QueryAsync<string>("SELECT TOP 1 ImgurClientId FROM WallMixerSettings")).FirstOrDefault();
+	        return (await db.QueryAsync<string>("SELECT ImgurClientId FROM WallMixerSettings")).FirstOrDefault();
 	    }
 
 	    public async Task ImgurClientId(string newId)
@@ -109,7 +109,7 @@
 
 		public async Task<WallhavenOptions> GetWallhavenOptions(WallpaperSource source)
 		{
-			return (await db.QueryAsync<WallhavenOptions>("SELECT TOP 1 * FROM Wallhaven WHERE Query=@Query", source)).FirstOrDefault();
+			return (await db.QueryAsync<WallhavenOptions>("SELECT * FROM Wallhaven WHERE Query=@Query", source)).FirstOrDefault();
 		}
 
 		private async Task ConfigureRepository()

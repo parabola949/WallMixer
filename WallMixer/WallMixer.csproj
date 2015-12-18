@@ -102,6 +102,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Classes\RelayCommand.cs" />
+    <Compile Include="Classes\UrlFetcher.cs" />
+    <Compile Include="Classes\WebImage.cs" />
     <Compile Include="DTO\Imgur.cs" />
     <Compile Include="Views\ConfigureView.xaml.cs">
       <DependentUpon>ConfigureView.xaml</DependentUpon>
@@ -126,7 +128,7 @@
     <Compile Include="DTO\WallhavenOptions.cs" />
     <Compile Include="DTO\WallpaperSource.cs" />
     <Compile Include="Interfaces\WallpaperRepository.cs" />
-    <Compile Include="Interfaces\ImageManager.cs" />
+    <Compile Include="Classes\DesktopBackground.cs" />
     <Compile Include="Interfaces\MetroDialogHandler.cs" />
     <Compile Include="MainBootstrapper.cs" />
     <Compile Include="MainView.xaml.cs">

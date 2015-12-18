@@ -7,7 +7,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using System.Windows;
-    using Dialogs;
+    using Classes;
     using DTO;
     using Caliburn.Micro;
     using Interfaces;
@@ -21,6 +21,7 @@
         private IMetroDialog _dialog;
         private Random _rand;
         private string _temp = Environment.ExpandEnvironmentVariables("%temp%");
+        private string currentImage;
         private CancellationTokenSource _cts;
 
         public string ToolTipInfo { get; set; }
@@ -40,15 +41,21 @@
             while (true)
             {
                 _cts = new CancellationTokenSource();
-                
                 var sources = await _db.GetSourcesAsync();
                 if (sources.Count > 0)
                 {
                     var randSource = sources[_rand.Next(sources.Count)];
                     if (randSource.Source == Source.Wallhaven) randSource.WallhavenOptions = await _db.GetWallhavenOptions(randSource);
-                    await ImageManager.SetRandomWallpaper(randSource, await _db.ImgurClientId());
-                    ToolTipInfo = string.Format("Source: {0}", randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query);
+                    string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId());
+                    string tempFile = await WebImage.DownloadImage(imageUrl);
+                    var image = Image.FromFile(tempFile);
+                    DesktopBackground.SetWallpaper(tempFile);
+                    ToolTipInfo = string.Format("Source: {0}\r\nResolution: {1}",
+                        randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query, image.Width + "x" + image.Height);
                     NotifyOfPropertyChange(() => ToolTipInfo);
+                    image = null;
+                    if (!string.IsNullOrEmpty(currentImage)) File.Delete(currentImage);
+                    currentImage = tempFile;
                 }
                 else
                 {
@@ -66,7 +73,7 @@
 
         public async void SaveWallpaper()
         {
-            File.Copy(_temp + @"\" + ImageManager.ImageName, (await _db.SaveLocation()) + @"\" + ImageManager.ImageName);
+            File.Copy(currentImage, (await _db.SaveLocation()) + @"\" + Path.GetFileName(currentImage));
         }
 
         public void NextWallpaper()
