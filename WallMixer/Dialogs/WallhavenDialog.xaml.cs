@@ -78,12 +78,6 @@
             KeyEventHandler escapeKeyHandler = null;
             Action cleanUpHandlers = null;
 
-            //var cancellationTokenRegistration = DialogSettings.CancellationToken.Register(() =>
-            //{
-            //    cleanUpHandlers();
-            //    tcs.TrySetResult(null);
-            //});
-
             cleanUpHandlers = () =>
             {
                 QueryTextbox.KeyDown -= affirmativeKeyHandler;
@@ -92,7 +86,6 @@
                 AffirmativeButton.Click -= affirmativeHandler;
                 NegativeButton.KeyDown -= negativeKeyHandler;
                 AffirmativeButton.KeyDown -= affirmativeKeyHandler;
-                //cancellationTokenRegistration.Dispose();
             };
 
             escapeKeyHandler = (sender, e) =>

@@ -16,12 +16,12 @@
 		Task EditSource(WallpaperSource source);
 		Task RemoveSource(WallpaperSource source);
 		Task<WallhavenOptions> GetWallhavenOptions(WallpaperSource source);
-	    Task<int> Interval();
-	    Task Interval(int newInterval);
-	    Task<string> SaveLocation();
-	    Task SaveLocation(string newLocation);
-	    Task<string> ImgurClientId();
-	    Task ImgurClientId(string newId);
+		Task<int> Interval();
+		Task Interval(int newInterval);
+		Task<string> SaveLocation();
+		Task SaveLocation(string newLocation);
+		Task<string> ImgurClientId();
+		Task ImgurClientId(string newId);
 	}
 
 	public class WallpaperRepository : IWallpaperRepository
@@ -33,35 +33,35 @@
 			ConfigureRepository();
 		}
 
-	    public async Task<int> Interval()
-	    {
-	        return Convert.ToInt32((await db.QueryAsync<long>("SELECT Interval FROM WallMixerSettings")).FirstOrDefault());
-	    }
+		public async Task<int> Interval()
+		{
+			return Convert.ToInt32((await db.QueryAsync<long>("SELECT Interval FROM WallMixerSettings")).FirstOrDefault());
+		}
 
-	    public async Task Interval(int newInterval)
-	    {
-	        await db.ExecuteAsync("UPDATE WallMixerSettings SET Interval=@interval", new {interval = newInterval});
-	    }
+		public async Task Interval(int newInterval)
+		{
+			await db.ExecuteAsync("UPDATE WallMixerSettings SET Interval=@interval", new {interval = newInterval});
+		}
 
-	    public async Task<string> SaveLocation()
-	    {
-	        return (await db.QueryAsync<string>("SELECT SaveLocation FROM WallMixerSettings")).FirstOrDefault();
-	    }
+		public async Task<string> SaveLocation()
+		{
+			return (await db.QueryAsync<string>("SELECT SaveLocation FROM WallMixerSettings")).FirstOrDefault();
+		}
 
-	    public async Task SaveLocation(string newLocation)
-	    {
-	        await db.ExecuteAsync("UPDATE WallMixerSettings SET SaveLocation=@location", new {location = newLocation});
-	    }
+		public async Task SaveLocation(string newLocation)
+		{
+			await db.ExecuteAsync("UPDATE WallMixerSettings SET SaveLocation=@location", new {location = newLocation});
+		}
 
-	    public async Task<string> ImgurClientId()
-	    {
-	        return (await db.QueryAsync<string>("SELECT ImgurClientId FROM WallMixerSettings")).FirstOrDefault();
-	    }
+		public async Task<string> ImgurClientId()
+		{
+			return (await db.QueryAsync<string>("SELECT ImgurClientId FROM WallMixerSettings")).FirstOrDefault();
+		}
 
-	    public async Task ImgurClientId(string newId)
-	    {
-	        await db.ExecuteAsync("UPDATE WallMixerSettings SET ImgurClientId=@clientId", new {clientId = newId});
-	    }
+		public async Task ImgurClientId(string newId)
+		{
+			await db.ExecuteAsync("UPDATE WallMixerSettings SET ImgurClientId=@clientId", new {clientId = newId});
+		}
 
 		public async Task<List<WallpaperSource>> GetSourcesAsync()
 		{
@@ -77,7 +77,18 @@
 					await db.ExecuteAsync("INSERT INTO Subreddit (Query) VALUES (@Query)", source);
 					break;
 				case Source.Wallhaven:
-					await db.ExecuteAsync("INSERT INTO Wallhaven (Query, General, Anime, People, SFW, Sketchy, Resolution, Ratio) VALUES (@Query, @General, @Anime, @People, @SFW, @Sketchy, @Resolution, @Ratio)", source);
+					await db.ExecuteAsync("INSERT INTO Wallhaven (Query, General, Anime, People, SFW, Sketchy, Resolution, Ratio) VALUES (@Query, @General, @Anime, @People, @SFW, @Sketchy, @Resolution, @Ratio)", 
+						new
+						{
+							Query = source.Query,
+							General = source.WallhavenOptions.General,
+							Anime = source.WallhavenOptions.Anime,
+							People = source.WallhavenOptions.People,
+							SFW = source.WallhavenOptions.SFW,
+							Sketchy = source.WallhavenOptions.Sketchy,
+							Resolution = source.WallhavenOptions.Resolution,
+							Ratio = source.WallhavenOptions.Ratio
+						});
 					break;
 			}
 		}
@@ -89,7 +100,18 @@
 				case Source.Reddit:
 					break;
 				case Source.Wallhaven:
-					await db.ExecuteAsync("UPDATE Wallhaven SET General=@General, Anime=@Anime, People=@People, SFW=@SFW, Sketchy=@Sketchy, Resolution=@Resolution, Ratio=@Ratio WHERE Query=@Query", source);
+					await db.ExecuteAsync("UPDATE Wallhaven SET General=@General, Anime=@Anime, People=@People, SFW=@SFW, Sketchy=@Sketchy, Resolution=@Resolution, Ratio=@Ratio WHERE Query=@Query",
+						new
+						{
+							Query = source.Query,
+							General = source.WallhavenOptions.General,
+							Anime = source.WallhavenOptions.Anime,
+							People = source.WallhavenOptions.People,
+							SFW = source.WallhavenOptions.SFW,
+							Sketchy = source.WallhavenOptions.Sketchy,
+							Resolution = source.WallhavenOptions.Resolution,
+							Ratio = source.WallhavenOptions.Ratio
+						});
 					break;
 			}
 		}

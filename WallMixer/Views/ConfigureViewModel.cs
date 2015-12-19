@@ -23,6 +23,7 @@
 
         public ConfigureViewModel(IWallpaperRepository database, IMetroDialog metroDialog)
         {
+            DisplayName = "Configure WallMixer";
             _db = database;
             _dialog = metroDialog;
             Sources = new BindableCollection<WallpaperSource>();
@@ -42,7 +43,7 @@
             if (string.IsNullOrEmpty(sub)) return;
             if (!sub.Contains("/r/")) sub = "/r/" + sub;
             var source = new WallpaperSource { Query = sub, Source = Source.Reddit };
-            _db.AddSource(source);
+            await _db.AddSource(source);
             Sources.Add(source);
         }
 
@@ -55,7 +56,7 @@
                 await _dialog.ShowMessageAsync("Error", "The search query cannot be blank.");
                 return;
             }
-            _db.AddSource(wallhavenSource);
+            await _db.AddSource(wallhavenSource);
             Sources.Add(wallhavenSource);
 
         }
@@ -64,7 +65,7 @@
         {
             if (source.Source == Source.Reddit)
             {
-                await _dialog.ShowMessageAsync("Error", "There are no options to edit on Subreddit sources!");
+                await _dialog.ShowMessageAsync("Error", "There are no options to edit on Reddit sources!");
                 return;
             }
             source.WallhavenOptions = await _db.GetWallhavenOptions(source);
@@ -77,21 +78,25 @@
                 SFW = Convert.ToBoolean(source.WallhavenOptions.SFW),
                 Sketchy = Convert.ToBoolean(source.WallhavenOptions.Sketchy),
             };
-            source.WallhavenOptions.Resolution.Split(',').AsParallel().ForAll(x =>
+            if (!string.IsNullOrEmpty(source.WallhavenOptions.Resolution))
+                source.WallhavenOptions.Resolution.Split(',').AsParallel().ForAll(x => wallhavenDialog.Resolutions.FirstOrDefault(y => y.ObjectData == x).IsSelected = true);
+            if (!string.IsNullOrEmpty(source.WallhavenOptions.Ratio))
+                source.WallhavenOptions.Ratio.Split(',').AsParallel().ForAll(x => wallhavenDialog.Ratios.FirstOrDefault(y => y.ObjectData == x).IsSelected = true);
+            var editedSource = (WallpaperSource)await _dialog.ShowCustomDialog(wallhavenDialog);
+            if (editedSource == null) return;
+            if (string.IsNullOrEmpty(editedSource.Query))
             {
-                wallhavenDialog.Resolutions.FirstOrDefault(y => y.ObjectData == x).IsSelected = true;
-            });
-            source.WallhavenOptions.Ratio.Split(',').AsParallel().ForAll(x =>
-            {
-                wallhavenDialog.Ratios.FirstOrDefault(y => y.ObjectData == x).IsSelected = true;
-            });
-            await _dialog.ShowCustomDialog(wallhavenDialog);
+                await _dialog.ShowMessageAsync("Error", "The search query cannot be blank");
+                return;
+            }
+            source = editedSource;
+            await _db.EditSource(source);
         }
 
         public async void DeleteSource(WallpaperSource source)
         {
-            if (!await _dialog.ShowConfirmationAsync("Confirmation", string.Format("Are you sure you want to delete [{0}] from your sources?", source.Query))) return;
-            _db.RemoveSource(source);
+            if (!await _dialog.ShowConfirmationAsync("Confirmation", string.Format("Are you sure you want to delete [{0}] from your source list?", source.Query))) return;
+            await _db.RemoveSource(source);
             Sources.Remove(source);
         }
 

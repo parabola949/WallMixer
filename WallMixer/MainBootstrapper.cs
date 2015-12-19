@@ -26,7 +26,6 @@
             batch.AddExportedValue<IWindowManager>(new WindowManager());
             batch.AddExportedValue<IWallpaperRepository>(new WallpaperRepository());
             batch.AddExportedValue<IMetroDialog>(new MetroDialogHandler(() => Application.Current.Windows.OfType<MetroWindow>().FirstOrDefault(w => w.IsActive) ?? Application.Current.MainWindow as MetroWindow));
-            //batch.AddExportedValue<IEventAggregator>(new EventAggregator());
             batch.AddExportedValue(container);
             container.Compose(batch);
         }

@@ -53,7 +53,7 @@
                     ToolTipInfo = string.Format("Source: {0}\r\nResolution: {1}",
                         randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query, image.Width + "x" + image.Height);
                     NotifyOfPropertyChange(() => ToolTipInfo);
-                    image = null;
+                    image.Dispose();
                     if (!string.IsNullOrEmpty(currentImage)) File.Delete(currentImage);
                     currentImage = tempFile;
                 }
