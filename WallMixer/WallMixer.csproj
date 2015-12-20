@@ -101,6 +101,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Classes\NetworkTester.cs" />
     <Compile Include="Classes\RelayCommand.cs" />
     <Compile Include="Classes\UrlFetcher.cs" />
     <Compile Include="Classes\WebImage.cs" />

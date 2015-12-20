@@ -11,8 +11,8 @@
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="Configure" cal:Message.Attach="Configure"/>
-                    <MenuItem Header="Save Wallpaper" cal:Message.Attach="SaveWallpaper"/>
-                    <MenuItem Header="Next Wallpaper" cal:Message.Attach="NextWallpaper"/>
+                    <MenuItem Header="Save Wallpaper" cal:Message.Attach="SaveWallpaper" IsEnabled="{Binding OptionEnabled, Mode=OneWay}"/>
+                    <MenuItem Header="Next Wallpaper" cal:Message.Attach="NextWallpaper" IsEnabled="{Binding OptionEnabled, Mode=OneWay}"/>
                     <MenuItem Header="Exit" cal:Message.Attach="Exit"/>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
