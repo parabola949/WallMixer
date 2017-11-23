@@ -20,6 +20,7 @@
         public string SaveLocation { get; set; }
         public string ImgurClientId { get; set; }
         public ICommand SetSaveLocationCommand { get { return new RelayCommand(SetSaveLocation); } }
+        public bool UseMultiple { get; set; }
 
         public ConfigureViewModel(IWallpaperRepository database, IMetroDialog metroDialog)
         {
@@ -35,6 +36,7 @@
             Interval = await _db.Interval();
             SaveLocation = await _db.SaveLocation();
             ImgurClientId = await _db.ImgurClientId();
+            UseMultiple = await _db.UseMultiple();
         }
 
         public async void AddSubreddit()
@@ -108,6 +110,11 @@
         public async void SetImgurClientId()
         {
             await _db.ImgurClientId(ImgurClientId);
+        }
+
+        public async void SetUseMultiple()
+        {
+            await _db.UseMultiple(UseMultiple);
         }
 
         public async void SetSaveLocation()

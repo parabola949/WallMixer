@@ -59,5 +59,6 @@
         <TextBox HorizontalAlignment="Left" Height="23" IsReadOnly="True" Text="{Binding SaveLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="215" Margin="445,255,0,0" Style="{StaticResource OpenFileMetroTextBox}" controls:TextBoxHelper.ButtonCommand="{Binding SetSaveLocationCommand}"/>
         <Label Content="Imgur ClientID:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="11,287,0,0"/>
         <TextBox HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="{Binding ImgurClientId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top" Width="120" Margin="122,288,0,0" cal:Message.Attach="[Event TextChanged] = [Action SetImgurClientId]"/>
+        <CheckBox Content="Use Multiple Monitors" IsChecked="{Binding UseMultiple, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Left" Margin="445,288,0,0" VerticalAlignment="Top" Width="214" Height="25" cal:Message.Attach="[Event Checked] = [Action SetUseMultiple]; [Event Unchecked] = [Action SetUseMultiple]"/>
     </Grid>
 </controls:MetroWindow>

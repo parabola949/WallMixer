@@ -6,12 +6,14 @@
     using System.IO;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Linq;
     using System.Windows;
     using Classes;
     using DTO;
     using Caliburn.Micro;
     using Interfaces;
     using Views;
+    using System.Collections.Generic;
 
     [Export(typeof(MainViewModel))]
     public class MainViewModel : PropertyChangedBase
@@ -50,10 +52,41 @@
                         NotifyOfPropertyChange(() => OptionEnabled);
                         var randSource = sources[_rand.Next(sources.Count)];
                         if (randSource.Source == Source.Wallhaven) randSource.WallhavenOptions = await _db.GetWallhavenOptions(randSource);
-                        string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId());
-                        string tempFile = await WebImage.DownloadImage(imageUrl);
-                        var image = Image.FromFile(tempFile);
-                        DesktopBackground.SetWallpaper(tempFile);
+                        Image image = null;
+                        var isMultiple = await _db.UseMultiple();
+                        string tempFile;
+                        if (isMultiple) {
+                            //testing for multiple monitors
+                            var screens = System.Windows.Forms.Screen.AllScreens;
+                            //so, we use the bounds.location.x / y to calculate the screen positions
+                            var test = screens.First().WorkingArea;
+                            //this needs to be modified to allow vertically stacked monitors.
+                            //right now only side by side monitors will work
+                            var bmp = new Bitmap(screens.Sum(x => x.Bounds.Width), screens.Max(x => x.Bounds.Height));
+                            var g = Graphics.FromImage(bmp);
+                            
+                            //get a random image for each screen
+                            foreach (var s in screens)
+                            {
+                                string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId());
+                                tempFile = await WebImage.DownloadImage(imageUrl);
+                                image = Image.FromFile(tempFile);
+                                //draw it onto the screens bounds
+                                g.DrawImage(image, new Rectangle(s.Bounds.Location.X, s.Bounds.Location.Y, s.Bounds.Width, s.Bounds.Height));
+                            }
+                            //now get the file out of it
+                            g.Save();
+                            tempFile = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "stitched.bmp");
+                            bmp.Save(tempFile);
+                        }
+                        else
+                        {
+                            string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId());
+                            tempFile = await WebImage.DownloadImage(imageUrl);
+                            image = Image.FromFile(tempFile);
+                        }
+
+                        DesktopBackground.SetWallpaper(tempFile, isMultiple);
                         ToolTipInfo = string.Format("Source: {0}\r\nResolution: {1}",
                             randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query, image.Width + "x" + image.Height);
                         NotifyOfPropertyChange(() => ToolTipInfo);

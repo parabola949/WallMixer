@@ -22,6 +22,8 @@
 		Task SaveLocation(string newLocation);
 		Task<string> ImgurClientId();
 		Task ImgurClientId(string newId);
+        Task<bool> UseMultiple();
+        Task UseMultiple(bool use);
 	}
 
 	public class WallpaperRepository : IWallpaperRepository
@@ -43,7 +45,17 @@
 			await db.ExecuteAsync("UPDATE WallMixerSettings SET Interval=@interval", new {interval = newInterval});
 		}
 
-		public async Task<string> SaveLocation()
+        public async Task<bool> UseMultiple()
+        {
+            return Convert.ToBoolean((await db.QueryAsync<string>("SELECT UseMultiple FROM WallMixerSettings")).FirstOrDefault());
+        }
+
+        public async Task UseMultiple(bool use)
+        {
+            await db.ExecuteAsync("UPDATE WallMixerSettings SET UseMultiple=@multiple", new { multiple = use.ToString()});
+        }
+
+        public async Task<string> SaveLocation()
 		{
 			return (await db.QueryAsync<string>("SELECT SaveLocation FROM WallMixerSettings")).FirstOrDefault();
 		}
@@ -137,10 +149,10 @@
 		private async Task ConfigureRepository()
 		{
 			if (File.Exists("first.bin")) return;
-			await db.ExecuteAsync(@"CREATE TABLE ""WallMixerSettings"" (`SaveLocation` TEXT, `Interval` INTEGER, `ImgurClientID` TEXT)");
+			await db.ExecuteAsync(@"CREATE TABLE ""WallMixerSettings"" (`SaveLocation` TEXT, `Interval` INTEGER, `ImgurClientID` TEXT, `UseMultiple` TEXT)");
 			await db.ExecuteAsync(@"CREATE TABLE ""Subreddit"" (`Query` TEXT)");
 			await db.ExecuteAsync(@"CREATE TABLE ""Wallhaven"" (`Query` TEXT, `General` INTEGER, `Anime` INTEGER, `People` INTEGER, `SFW` INTEGER, `Sketchy` INTEGER, `Resolution` TEXT, `Ratio` TEXT)");
-			await db.ExecuteAsync("INSERT INTO WallMixerSettings (SaveLocation, Interval, ImgurClientID) VALUES ('C:\\temp', 10, '1234abc')");
+			await db.ExecuteAsync("INSERT INTO WallMixerSettings (SaveLocation, Interval, ImgurClientID, UseMultiple) VALUES ('C:\\temp', 10, '1234abc', 'False')");
 			new StreamWriter("first.bin");
 		}
 	}
