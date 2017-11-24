@@ -105,11 +105,19 @@
     <Compile Include="Classes\RelayCommand.cs" />
     <Compile Include="Classes\UrlFetcher.cs" />
     <Compile Include="Classes\WebImage.cs" />
+    <Compile Include="Dialogs\CustomDialog.cs" />
+    <Compile Include="Dialogs\LocalDialog.xaml.cs">
+      <DependentUpon>LocalDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DTO\Imgur.cs" />
     <Compile Include="Views\ConfigureView.xaml.cs">
       <DependentUpon>ConfigureView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\ConfigureViewModel.cs" />
+    <Page Include="Dialogs\LocalDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Dialogs\WallhavenDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

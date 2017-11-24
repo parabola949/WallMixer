@@ -27,6 +27,7 @@
                     <ContextMenu x:Name="LeftClickMenu">
                         <MenuItem Header="Subreddit" cal:Message.Attach="AddSubreddit"/>
                         <MenuItem Header="Wallhaven" cal:Message.Attach="AddWallhaven"/>
+                        <MenuItem Header="Local" cal:Message.Attach="AddLocal"/>
                     </ContextMenu>
                 </Button.ContextMenu>
             </Button>

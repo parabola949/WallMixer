@@ -8,13 +8,16 @@
     using DTO;
     using HtmlAgilityPack;
     using Newtonsoft.Json;
+    using System.Security.Cryptography;
+    using System.Collections.Generic;
+    using System.Text.RegularExpressions;
 
     public static class UrlFetcher
     {
         private static Random _rand = new Random();
         private static string _clientId;
 
-        public static async Task<string> GetRandomImageUrl(WallpaperSource source, string clientId)
+        public static async Task<string> GetRandomImageUrl(WallpaperSource source, string clientId, List<string> current)
         {
             _clientId = clientId;
             switch (source.Source)
@@ -23,6 +26,8 @@
                     return await GetRandomRedditImage(source.Query);
                 case Source.Wallhaven:
                     return await GetRandomWallhavenImage(source);
+                case Source.Local:
+                    return await GetRandomLocalImage(source.Query, current);
             }
             return "Not found";
         }
@@ -45,6 +50,46 @@
             var mainSearch = htmlWeb.Load(baseUrl).DocumentNode.SelectNodes("//a[@class='preview']");
             var rndImageUrl = htmlWeb.Load(mainSearch[_rand.Next(mainSearch.Count - 1)].Attributes["href"].Value).DocumentNode.SelectNodes("//img[@id='wallpaper']");
             return "http:" + rndImageUrl.First().Attributes["src"].Value;
+        }
+
+        private static async Task<string> GetRandomLocalImage(string path, List<string> current)
+        {
+            //get images in the folder
+            var filters = ".jpg|.jpeg|.png|.gif|.bmp$";
+
+            var list = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Where(x => Regex.IsMatch(x, filters, RegexOptions.IgnoreCase)).ToList();//.Where(x => !current.Contains(x)).ToList();
+            RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
+            list.Shuffle();
+            list.Shuffle();
+            return list.First();
+            //var r = new Random();
+            //r.Next(100);
+            //return list[r.Next(list.Count)];
+        }
+
+        private static void Shuffle<T>(this IList<T> list)
+        {
+            RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
+            int n = list.Count;
+            while (n > 1)
+            {
+                byte[] box = new byte[1];
+                do provider.GetBytes(box);
+                while (!(box[0] < n * (Byte.MaxValue / n)));
+                int k = (box[0] % n);
+                n--;
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+
+        private static IEnumerable<FileInfo> GetFilesByExtensions(this DirectoryInfo dir, params string[] extensions)
+        {
+            if (extensions == null)
+                throw new ArgumentNullException("extensions");
+            IEnumerable<FileInfo> files = dir.EnumerateFiles();
+            return files.Where(f => extensions.Contains(f.Extension));
         }
 
         private static string FormatWallhavenQueryString(string query, WallhavenOptions options)

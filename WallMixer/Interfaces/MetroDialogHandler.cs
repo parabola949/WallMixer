@@ -12,7 +12,7 @@
         Task<string> ShowInputAsync(string title, string message);
         Task<ProgressDialogController> ShowProgressAsync(string title, string message);
         Task<bool> ShowConfirmationAsync(string title, string message);
-        Task<object> ShowCustomDialog(WallhavenDialog dialog);
+        Task<object> ShowCustomDialog(ICustomDialog dialog);
     }
 
     public sealed class MetroDialogHandler : IMetroDialog
@@ -44,11 +44,11 @@
             return await ActiveWindow().ShowMessageAsync(title, message, MessageDialogStyle.AffirmativeAndNegative) == MessageDialogResult.Affirmative;
         }
 
-        public async Task<object> ShowCustomDialog(WallhavenDialog dialog)
+        public async Task<object> ShowCustomDialog(ICustomDialog dialog)
         {
-            await ActiveWindow().ShowMetroDialogAsync(dialog);
+            await ActiveWindow().ShowMetroDialogAsync(dialog as BaseMetroDialog);
             var result = await dialog.WaitForButtonPressAsync();
-            await ActiveWindow().HideMetroDialogAsync(dialog);
+            await ActiveWindow().HideMetroDialogAsync(dialog as BaseMetroDialog);
             return result;
         }
     }

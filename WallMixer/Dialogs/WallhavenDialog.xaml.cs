@@ -11,11 +11,12 @@
     using System.Windows.Input;
     using System.Windows.Media;
     using DTO;
+    using MahApps.Metro.Controls.Dialogs;
 
     /// <summary>
     /// Interaction logic for WallhavenDialog.xaml
     /// </summary>
-    public partial class WallhavenDialog
+    public partial class WallhavenDialog : ICustomDialog
     {
         public string Message { get; set; }
         public string Query { get; set; }
@@ -62,7 +63,7 @@
             InitializeComponent();
         }
 
-        internal Task<WallpaperSource> WaitForButtonPressAsync()
+        public Task<WallpaperSource> WaitForButtonPressAsync()
         {
             Dispatcher.BeginInvoke(new Action(() =>
             {

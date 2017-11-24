@@ -10,6 +10,7 @@
     using DTO;
     using Interfaces;
     using Screen = Caliburn.Micro.Screen;
+    using System.IO;
 
     public class ConfigureViewModel : Screen
     {
@@ -63,9 +64,33 @@
 
         }
 
+        public async void AddLocal()
+        {
+            var localSource = (WallpaperSource)(await _dialog.ShowCustomDialog(new LocalDialog("Please enter path and a name")));
+            if (localSource == null) return;
+            if (string.IsNullOrEmpty(localSource.Query))
+            {
+                await _dialog.ShowMessageAsync("Error", "The location cannot be blank.");
+                return;
+            }
+            //check the directory exists
+            var path = localSource.Query;
+            //check if is a file
+            if (File.Exists(path))
+                path = Path.GetDirectoryName(path);
+            if (!Directory.Exists(path))
+            {
+                await _dialog.ShowMessageAsync("Error", "The location cannot be found");
+                return;
+            }
+            localSource.Query = path;
+            await _db.AddSource(localSource);
+            Sources.Add(localSource);
+        }
+
         public async void EditSource(WallpaperSource source)
         {
-            if (source.Source == Source.Reddit)
+            if (source.Source == Source.Reddit || source.Source == Source.Local)
             {
                 await _dialog.ShowMessageAsync("Error", "There are no options to edit on Reddit sources!");
                 return;

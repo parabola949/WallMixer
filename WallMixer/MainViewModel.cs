@@ -24,6 +24,7 @@
         private Random _rand;
         private List<string> currentImages = new List<string>();
         private List<Image> newImages = new List<Image>();
+        private bool wasLocal = false;
 
         private CancellationTokenSource _cts;
 
@@ -50,9 +51,10 @@
                     var sources = await _db.GetSourcesAsync();
                     if (sources.Count > 0)
                     {
-                        foreach (var file in currentImages)
-                            File.Delete(file);
-                        
+                        if (!wasLocal)
+                            foreach (var file in currentImages)
+                                File.Delete(file);
+                        currentImages.Clear();
                         OptionEnabled = true;
                         NotifyOfPropertyChange(() => OptionEnabled);
                         var randSource = sources[_rand.Next(sources.Count)];
@@ -60,6 +62,7 @@
                         Image image = null;
                         var isMultiple = await _db.UseMultiple();
                         string tempFile;
+                        wasLocal = (randSource.Source == Source.Local);
                         if (isMultiple)
                         {
                             //testing for multiple monitors
@@ -75,8 +78,16 @@
                                 //get a random image for each screen
                                 foreach (var s in screens)
                                 {
-                                    string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId());
-                                    tempFile = await WebImage.DownloadImage(imageUrl);
+                                    
+                                    do
+                                    {
+                                        string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId(), currentImages);
+                                        if (randSource.Source != Source.Local)
+                                            tempFile = await WebImage.DownloadImage(imageUrl);
+                                        else
+                                            tempFile = imageUrl;
+                                    }
+                                    while (currentImages.Contains(tempFile)); //don't want duplicates
                                     currentImages.Add(tempFile);
                                     image = Image.FromFile(tempFile);
                                     //draw it onto the screens bounds
@@ -91,8 +102,11 @@
                         }
                         else
                         {
-                            string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId());
-                            tempFile = await WebImage.DownloadImage(imageUrl);
+                            string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId(), currentImages);
+                            if (randSource.Source != Source.Local)
+                                tempFile = await WebImage.DownloadImage(imageUrl);
+                            else
+                                tempFile = imageUrl;
                             image = Image.FromFile(tempFile);
                             newImages.Add(image);
                             currentImages.Add(tempFile);
