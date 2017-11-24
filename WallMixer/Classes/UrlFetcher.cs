@@ -57,14 +57,11 @@
             //get images in the folder
             var filters = ".jpg|.jpeg|.png|.gif|.bmp$";
 
-            var list = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Where(x => Regex.IsMatch(x, filters, RegexOptions.IgnoreCase)).ToList();//.Where(x => !current.Contains(x)).ToList();
+            var list = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Where(x => Regex.IsMatch(x, filters, RegexOptions.IgnoreCase)).Where(x => !current.Contains(x)).ToList();
             RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
             list.Shuffle();
             list.Shuffle();
             return list.First();
-            //var r = new Random();
-            //r.Next(100);
-            //return list[r.Next(list.Count)];
         }
 
         private static void Shuffle<T>(this IList<T> list)
