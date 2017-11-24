@@ -43,6 +43,9 @@
 
         private async void ChangeWallpaper()
         {
+            //TODO - 
+            // Don't need internet access for local folders
+            // 
             while (true)
             {
                 if (await NetworkTester.HasInternetAccess())
@@ -61,33 +64,34 @@
                         if (randSource.Source == Source.Wallhaven) randSource.WallhavenOptions = await _db.GetWallhavenOptions(randSource);
                         Image image = null;
                         var isMultiple = await _db.UseMultiple();
-                        string tempFile;
+                        string tempFile = null;
                         wasLocal = (randSource.Source == Source.Local);
                         if (isMultiple)
                         {
                             //testing for multiple monitors
                             var screens = System.Windows.Forms.Screen.AllScreens;
-                            //so, we use the bounds.location.x / y to calculate the screen positions
-                            var test = screens.First().WorkingArea;
                             //this needs to be modified to allow vertically stacked monitors.
                             //right now only side by side monitors will work
                             using (var bmp = new Bitmap(screens.Sum(x => x.Bounds.Width), screens.Max(x => x.Bounds.Height)))
                             using (var g = Graphics.FromImage(bmp))
                             {
-
                                 //get a random image for each screen
                                 foreach (var s in screens)
                                 {
-                                    
-                                    do
+
+                                    string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId(), currentImages);
+                                    if (String.IsNullOrEmpty(imageUrl))
                                     {
-                                        string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId(), currentImages);
+                                        if (String.IsNullOrEmpty(tempFile)) continue;
+                                        //do nothing, leave the temp file as the current file
+                                    }
+                                    else {
                                         if (randSource.Source != Source.Local)
                                             tempFile = await WebImage.DownloadImage(imageUrl);
                                         else
                                             tempFile = imageUrl;
                                     }
-                                    while (currentImages.Contains(tempFile)); //don't want duplicates
+                                    
                                     currentImages.Add(tempFile);
                                     image = Image.FromFile(tempFile);
                                     //draw it onto the screens bounds
@@ -111,11 +115,13 @@
                             newImages.Add(image);
                             currentImages.Add(tempFile);
                         }
-
-                        DesktopBackground.SetWallpaper(tempFile, isMultiple);
-                        ToolTipInfo = string.Format("Source: {0}\r\nResolution: {1}",
-                            randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query, newImages.Aggregate("", (c, v) => $"{c}\r\n{v.Width}x{v.Height}"));
-                        NotifyOfPropertyChange(() => ToolTipInfo);
+                        if (!currentImages.All(x => String.IsNullOrEmpty(x)))
+                        {
+                            DesktopBackground.SetWallpaper(tempFile, isMultiple);
+                            ToolTipInfo = string.Format("Source: {0}\r\nResolution: {1}",
+                                randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query, newImages.Aggregate("", (c, v) => $"{c}\r\n{v.Width}x{v.Height}"));
+                            NotifyOfPropertyChange(() => ToolTipInfo);
+                        }
                         foreach (var i in newImages)
                             i.Dispose();
                         newImages.Clear();

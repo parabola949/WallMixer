@@ -29,7 +29,7 @@
                 case Source.Local:
                     return await GetRandomLocalImage(source.Query, current);
             }
-            return "Not found";
+            return null;
         }
 
         private static async Task<string> GetRandomRedditImage(string subreddit)
@@ -58,6 +58,7 @@
             var filters = ".jpg|.jpeg|.png|.gif|.bmp$";
 
             var list = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories).Where(x => Regex.IsMatch(x, filters, RegexOptions.IgnoreCase)).Where(x => !current.Contains(x)).ToList();
+            if (list.Count == 0) return null;
             RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
             list.Shuffle();
             list.Shuffle();
