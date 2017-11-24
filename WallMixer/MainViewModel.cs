@@ -38,126 +38,133 @@
             _db = db;
             _dialog = dialog;
             _rand = new Random();
-            ChangeWallpaper();
+            new Task(ChangeWallpaper).Start();
         }
 
         private async void ChangeWallpaper()
         {
-            //TODO - 
-            // Don't need internet access for local folders
-            // 
-            while (true)
+            try
             {
-                var sources = await _db.GetSourcesAsync();
-                var access = await NetworkTester.HasInternetAccess();
-                if (access || sources.Any(x => x.Source == Source.Local))
+                //TODO - 
+                // Don't need internet access for local folders
+                // 
+                while (true)
                 {
-                    _cts = new CancellationTokenSource();
-
-                    if (sources.Count > 0)
+                    var sources = await _db.GetSourcesAsync();
+                    var access = await NetworkTester.HasInternetAccess();
+                    if (access || sources.Any(x => x.Source == Source.Local))
                     {
-                        if (!wasLocal)
-                            foreach (var file in currentImages)
-                                File.Delete(file);
-                        currentImages.Clear();
-                        OptionEnabled = true;
-                        NotifyOfPropertyChange(() => OptionEnabled);
-                        WallpaperSource randSource;
-                        if (access)
-                            randSource = sources[_rand.Next(sources.Count)];
-                        else
+                        _cts = new CancellationTokenSource();
+
+                        if (sources.Count > 0)
                         {
-                            sources = sources.Where(x => x.Source == Source.Local).ToList();
-                            randSource = sources[_rand.Next(sources.Count)];
-                        }
-                        if (randSource.Source == Source.Wallhaven) randSource.WallhavenOptions = await _db.GetWallhavenOptions(randSource);
-                        Image image = null;
-                        var isMultiple = await _db.UseMultiple();
-                        string tempFile = null;
-                        wasLocal = (randSource.Source == Source.Local);
-                        if (isMultiple)
-                        {
-                            //testing for multiple monitors
-                            var screens = System.Windows.Forms.Screen.AllScreens;
-                            //this needs to be modified to allow vertically stacked monitors.
-                            //right now only side by side monitors will work
-                            using (var bmp = new Bitmap(screens.Sum(x => x.Bounds.Width), screens.Max(x => x.Bounds.Height)))
-                            using (var g = Graphics.FromImage(bmp))
+                            if (!wasLocal)
+                                foreach (var file in currentImages)
+                                    File.Delete(file);
+                            currentImages.Clear();
+                            OptionEnabled = true;
+                            NotifyOfPropertyChange(() => OptionEnabled);
+                            WallpaperSource randSource;
+                            if (access)
+                                randSource = sources[_rand.Next(sources.Count)];
+                            else
                             {
-                                //get a random image for each screen
-                                foreach (var s in screens)
+                                sources = sources.Where(x => x.Source == Source.Local).ToList();
+                                randSource = sources[_rand.Next(sources.Count)];
+                            }
+                            if (randSource.Source == Source.Wallhaven) randSource.WallhavenOptions = await _db.GetWallhavenOptions(randSource);
+                            Image image = null;
+                            var isMultiple = await _db.UseMultiple();
+                            string tempFile = null;
+                            wasLocal = (randSource.Source == Source.Local);
+                            if (isMultiple)
+                            {
+                                //testing for multiple monitors
+                                var screens = System.Windows.Forms.Screen.AllScreens;
+                                //this needs to be modified to allow vertically stacked monitors.
+                                //right now only side by side monitors will work
+                                using (var bmp = new Bitmap(screens.Sum(x => x.Bounds.Width), screens.Max(x => x.Bounds.Height)))
+                                using (var g = Graphics.FromImage(bmp))
                                 {
+                                    //get a random image for each screen
+                                    foreach (var s in screens)
+                                    {
 
-                                    string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId(), currentImages);
-                                    if (String.IsNullOrEmpty(imageUrl))
-                                    {
-                                        if (String.IsNullOrEmpty(tempFile)) continue;
-                                        //do nothing, leave the temp file as the current file
-                                    }
-                                    else
-                                    {
-                                        if (randSource.Source != Source.Local)
-                                            tempFile = await WebImage.DownloadImage(imageUrl);
+                                        string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId(), currentImages);
+                                        if (String.IsNullOrEmpty(imageUrl))
+                                        {
+                                            if (String.IsNullOrEmpty(tempFile)) continue;
+                                            //do nothing, leave the temp file as the current file
+                                        }
                                         else
-                                            tempFile = imageUrl;
-                                    }
+                                        {
+                                            if (randSource.Source != Source.Local)
+                                                tempFile = await WebImage.DownloadImage(imageUrl);
+                                            else
+                                                tempFile = imageUrl;
+                                        }
 
-                                    currentImages.Add(tempFile);
-                                    image = Image.FromFile(tempFile);
-                                    //draw it onto the screens bounds
-                                    g.DrawImage(image, new Rectangle(s.Bounds.Location.X, s.Bounds.Location.Y, s.Bounds.Width, s.Bounds.Height));
-                                    newImages.Add(image);
+                                        currentImages.Add(tempFile);
+                                        image = Image.FromFile(tempFile);
+                                        //draw it onto the screens bounds
+                                        g.DrawImage(image, new Rectangle(s.Bounds.Location.X, s.Bounds.Location.Y, s.Bounds.Width, s.Bounds.Height));
+                                        newImages.Add(image);
+                                    }
+                                    //now get the file out of it
+                                    g.Save();
+                                    tempFile = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "stitched.bmp");
+                                    bmp.Save(tempFile);
                                 }
-                                //now get the file out of it
-                                g.Save();
-                                tempFile = Path.Combine(Environment.ExpandEnvironmentVariables("%temp%"), "stitched.bmp");
-                                bmp.Save(tempFile);
                             }
+                            else
+                            {
+                                string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId(), currentImages);
+                                if (!String.IsNullOrEmpty(imageUrl))
+                                {
+                                    if (randSource.Source != Source.Local)
+                                        tempFile = await WebImage.DownloadImage(imageUrl);
+                                    else
+                                        tempFile = imageUrl;
+                                    image = Image.FromFile(tempFile);
+                                    newImages.Add(image);
+                                    currentImages.Add(tempFile);
+                                }
+
+                            }
+                            if (!currentImages.All(x => String.IsNullOrEmpty(x)))
+                            {
+                                DesktopBackground.SetWallpaper(tempFile, isMultiple);
+                                ToolTipInfo = string.Format("Source: {0}\r\nResolution: {1}",
+                                    randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query, newImages.Aggregate("", (c, v) => $"{c}\r\n{v.Width}x{v.Height}"));
+                                NotifyOfPropertyChange(() => ToolTipInfo);
+                            }
+                            foreach (var i in newImages)
+                                i.Dispose();
+                            newImages.Clear();
                         }
                         else
                         {
-                            string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId(), currentImages);
-                            if (!String.IsNullOrEmpty(imageUrl))
-                            {
-                                if (randSource.Source != Source.Local)
-                                    tempFile = await WebImage.DownloadImage(imageUrl);
-                                else
-                                    tempFile = imageUrl;
-                                image = Image.FromFile(tempFile);
-                                newImages.Add(image);
-                                currentImages.Add(tempFile);
-                            }
-
-                        }
-                        if (!currentImages.All(x => String.IsNullOrEmpty(x)))
-                        {
-                            DesktopBackground.SetWallpaper(tempFile, isMultiple);
-                            ToolTipInfo = string.Format("Source: {0}\r\nResolution: {1}",
-                                randSource.Source == Source.Reddit ? randSource.Query : randSource.Source + " / " + randSource.Query, newImages.Aggregate("", (c, v) => $"{c}\r\n{v.Width}x{v.Height}"));
+                            ToolTipInfo = "Please add sources!";
                             NotifyOfPropertyChange(() => ToolTipInfo);
+                            OptionEnabled = false;
+                            NotifyOfPropertyChange(() => OptionEnabled);
                         }
-                        foreach (var i in newImages)
-                            i.Dispose();
-                        newImages.Clear();
+                        await Task.Delay(TimeSpan.FromMinutes(await _db.Interval()), _cts.Token).ContinueWith(tsk => { });
                     }
                     else
                     {
-                        ToolTipInfo = "Please add sources!";
+                        ToolTipInfo = "Waiting for internet access...";
                         NotifyOfPropertyChange(() => ToolTipInfo);
                         OptionEnabled = false;
                         NotifyOfPropertyChange(() => OptionEnabled);
+                        await Task.Delay(TimeSpan.FromSeconds(30));
                     }
-                    await Task.Delay(TimeSpan.FromMinutes(await _db.Interval()), _cts.Token).ContinueWith(tsk => { });
-                }
-                else
-                {
-                    ToolTipInfo = "Waiting for internet access...";
-                    NotifyOfPropertyChange(() => ToolTipInfo);
-                    OptionEnabled = false;
-                    NotifyOfPropertyChange(() => OptionEnabled);
-                    await Task.Delay(TimeSpan.FromSeconds(30));
-                }
 
+                }
+            }
+            catch (Exception e)
+            {
+                e = e;
             }
         }
 
