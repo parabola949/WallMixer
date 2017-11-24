@@ -53,7 +53,7 @@
                 if (access || sources.Any(x => x.Source == Source.Local))
                 {
                     _cts = new CancellationTokenSource();
-                    
+
                     if (sources.Count > 0)
                     {
                         if (!wasLocal)
@@ -94,13 +94,14 @@
                                         if (String.IsNullOrEmpty(tempFile)) continue;
                                         //do nothing, leave the temp file as the current file
                                     }
-                                    else {
+                                    else
+                                    {
                                         if (randSource.Source != Source.Local)
                                             tempFile = await WebImage.DownloadImage(imageUrl);
                                         else
                                             tempFile = imageUrl;
                                     }
-                                    
+
                                     currentImages.Add(tempFile);
                                     image = Image.FromFile(tempFile);
                                     //draw it onto the screens bounds
@@ -116,13 +117,17 @@
                         else
                         {
                             string imageUrl = await UrlFetcher.GetRandomImageUrl(randSource, await _db.ImgurClientId(), currentImages);
-                            if (randSource.Source != Source.Local)
-                                tempFile = await WebImage.DownloadImage(imageUrl);
-                            else
-                                tempFile = imageUrl;
-                            image = Image.FromFile(tempFile);
-                            newImages.Add(image);
-                            currentImages.Add(tempFile);
+                            if (!String.IsNullOrEmpty(imageUrl))
+                            {
+                                if (randSource.Source != Source.Local)
+                                    tempFile = await WebImage.DownloadImage(imageUrl);
+                                else
+                                    tempFile = imageUrl;
+                                image = Image.FromFile(tempFile);
+                                newImages.Add(image);
+                                currentImages.Add(tempFile);
+                            }
+
                         }
                         if (!currentImages.All(x => String.IsNullOrEmpty(x)))
                         {
