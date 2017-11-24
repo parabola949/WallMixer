@@ -48,10 +48,12 @@
             // 
             while (true)
             {
-                if (await NetworkTester.HasInternetAccess())
+                var sources = await _db.GetSourcesAsync();
+                var access = await NetworkTester.HasInternetAccess();
+                if (access || sources.Any(x => x.Source == Source.Local))
                 {
                     _cts = new CancellationTokenSource();
-                    var sources = await _db.GetSourcesAsync();
+                    
                     if (sources.Count > 0)
                     {
                         if (!wasLocal)
@@ -60,7 +62,14 @@
                         currentImages.Clear();
                         OptionEnabled = true;
                         NotifyOfPropertyChange(() => OptionEnabled);
-                        var randSource = sources[_rand.Next(sources.Count)];
+                        WallpaperSource randSource;
+                        if (access)
+                            randSource = sources[_rand.Next(sources.Count)];
+                        else
+                        {
+                            sources = sources.Where(x => x.Source == Source.Local).ToList();
+                            randSource = sources[_rand.Next(sources.Count)];
+                        }
                         if (randSource.Source == Source.Wallhaven) randSource.WallhavenOptions = await _db.GetWallhavenOptions(randSource);
                         Image image = null;
                         var isMultiple = await _db.UseMultiple();
