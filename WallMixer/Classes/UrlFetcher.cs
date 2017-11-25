@@ -59,10 +59,10 @@
 
             var list = Directory.GetFiles(path, "*.*", SearchOption.TopDirectoryOnly).Where(x => Regex.IsMatch(x, filters, RegexOptions.IgnoreCase)).Where(x => !current.Contains(x)).ToList();
             if (list.Count == 0) return null;
-            RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
-            list.Shuffle();
-            list.Shuffle();
-            return list.First();
+
+            //list.Shuffle();
+            //list.Shuffle();
+            return list[TheRandom.Random.Next(list.Count)];
         }
 
         private static void Shuffle<T>(this IList<T> list)

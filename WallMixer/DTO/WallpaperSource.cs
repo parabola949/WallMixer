@@ -1,4 +1,6 @@
-﻿namespace WallMixer.DTO
+﻿using System;
+
+namespace WallMixer.DTO
 {
     public sealed class WallpaperSource
     {
@@ -11,5 +13,10 @@
     public enum Source
     {
         Reddit, Wallhaven, Local
+    }
+
+    public static class TheRandom
+    {
+        public static Random Random { get; set; } = new Random();
     }
 }

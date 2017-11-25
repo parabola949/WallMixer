@@ -50,11 +50,12 @@
                 // 
                 while (true)
                 {
+                    _cts = new CancellationTokenSource();
                     var sources = await _db.GetSourcesAsync();
                     var access = await NetworkTester.HasInternetAccess();
                     if (access || sources.Any(x => x.Source == Source.Local))
                     {
-                        _cts = new CancellationTokenSource();
+
 
                         if (sources.Count > 0)
                         {
@@ -106,8 +107,15 @@
 
                                         currentImages.Add(tempFile);
                                         image = Image.FromFile(tempFile);
-                                        //draw it onto the screens bounds
-                                        g.DrawImage(image, new Rectangle(s.Bounds.Location.X, s.Bounds.Location.Y, s.Bounds.Width, s.Bounds.Height));
+                                        //we need to scale the image properly to fit the screen
+                                        image = WebImage.ScaleImage(image, s.Bounds.Width, s.Bounds.Height);
+                                        //now figure out the location
+                                        var x = ((s.Bounds.Width - image.Width) / 2) + s.Bounds.Location.X;
+                                        var y = ((s.Bounds.Height - image.Height) / 2) + s.Bounds.Location.Y;
+
+                                        //draw it onto the screen
+                                        g.DrawImage(image, new Rectangle(x, y, image.Width, image.Height));
+
                                         newImages.Add(image);
                                     }
                                     //now get the file out of it
